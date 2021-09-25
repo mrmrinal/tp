@@ -26,11 +26,15 @@ Class Tag
 
 }
 
+package Storage{
+}
+
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Model
 
 AddressBook .up.|> ReadOnlyAddressBook
 
+AddressBook --> Storage
 ModelManager .up.|> Model
 Model .right.> ReadOnlyUserPrefs
 Model .left.> ReadOnlyAddressBook

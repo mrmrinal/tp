@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,6 +122,13 @@ public class AddCommandTest {
         @Override
         public ReadOnlyAddressBook getAddressBook() {
             throw new AssertionError("This method should not be called.");
+        }
+
+        /**
+         * Returns the AddressBook
+         */
+        @Override
+        public void saveAddressBook() throws IOException {
         }
 
         @Override
