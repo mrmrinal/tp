@@ -1,21 +1,18 @@
 package donnafin.ui;
 
-import java.util.stream.Collectors;
-
+import donnafin.logic.InvalidFieldException;
 import donnafin.logic.PersonAdapter;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import donnafin.model.person.Attribute;
 import javafx.fxml.FXML;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 
 public class ClientInfoPanel extends UiPart<Region> {
     private static final String FXML = "ClientInfoPanel.fxml";
-    private PersonAdapter personAdapter;
+    private final PersonAdapter personAdapter;
 
     @FXML
-    private ListView<AttributePanel> clientInfoList;
+    private VBox clientInfoList;
 
     /**
      * Creates a {@code PersonListPanel} with the given {@code ObservableList}.
@@ -23,32 +20,45 @@ public class ClientInfoPanel extends UiPart<Region> {
     public ClientInfoPanel(PersonAdapter personAdapter) {
         super(FXML);
         this.personAdapter = personAdapter;
-        // Make all the attributes into FXML AttributePanel
-        ObservableList<AttributePanel> attributePanelObservableList =
-                personAdapter.getAllAttributesList().stream()
-                        .map(x -> new AttributePanel(x))
-                        .collect(Collectors.toCollection(FXCollections::observableArrayList));
-        clientInfoList.setItems(attributePanelObservableList);
-        clientInfoList.setCellFactory(listView -> new AttributeListViewCell());
+
+        personAdapter.getAllAttributesList().stream()
+                .map(attr -> createAttributePanel(attr).getRoot())
+                .forEach(y -> clientInfoList.getChildren().add(y));
     }
 
-    class AttributeListViewCell extends ListCell<AttributePanel> {
-        @Override
-        protected void updateItem(AttributePanel attribute, boolean empty) {
-            super.updateItem(attribute, empty);
+    private AttributePanel createAttributePanel(Attribute attr) {
+        String fieldInString = attr.getClass().getSimpleName();
+        return new AttributePanel(
+                fieldInString,
+                attr.toString(),
+                createEditHandler(getPersonField(fieldInString))
+        );
+    }
 
-            if (empty || attribute == null) {
-                setGraphic(null);
-                setText(null);
-            } else {
-                setGraphic(attribute.getRoot());
-            }
+    /** Gets the PersonField enum type of attribute from label */
+    private PersonAdapter.PersonField getPersonField(String fieldInString) {
+        switch(fieldInString) {
+        case "Name":
+            return PersonAdapter.PersonField.NAME;
+        case "Address":
+            return PersonAdapter.PersonField.ADDRESS;
+        case "Phone":
+            return PersonAdapter.PersonField.PHONE;
+        case "Email":
+            return PersonAdapter.PersonField.EMAIL;
+        default:
+            throw new IllegalArgumentException("Unexpected Person Field used");
         }
     }
 
-    /**
-     * Handles the Enter button pressed event.
-     */
-    private void handleCommandEntered(String attributeChanged) {
+    private AttributePanel.EditHandler createEditHandler(PersonAdapter.PersonField field) {
+        return newValue -> {
+            try {
+                this.personAdapter.edit(field, newValue);
+                return null;
+            } catch (InvalidFieldException e) {
+                return e.getMessage();
+            }
+        };
     }
 }

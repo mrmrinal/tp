@@ -10,6 +10,7 @@ Class AddressBookParser
 Class XYZCommand
 Class CommandResult
 Class "{abstract}\nCommand" as Command
+class PersonAdapter
 
 
 Interface Logic <<Interface>>
@@ -28,9 +29,11 @@ LogicManager -right->"1" AddressBookParser
 AddressBookParser ..> XYZCommand : creates >
 
 XYZCommand -up-|> Command
+XYZCommand  .up.> PersonAdapter : creates >
 LogicManager .left.> Command : executes >
 
 LogicManager --> Model
+PersonAdapter -up-> Model
 Command .right.> Model
 note right of XYZCommand: XYZCommand = AddCommand, \nFindCommand, etc
 

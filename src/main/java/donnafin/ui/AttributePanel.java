@@ -1,17 +1,16 @@
 package donnafin.ui;
 
-import java.util.Objects;
-
-import donnafin.model.person.Attribute;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 
 /**
  * An UI component that displays information of a {@code Person}.
  */
-public class AttributePanel extends UiPart<Region> implements Attribute {
+public class AttributePanel extends UiPart<Region> {
 
     private static final String FXML = "AttributePanel.fxml";
 
@@ -24,70 +23,110 @@ public class AttributePanel extends UiPart<Region> implements Attribute {
      */
 
     @FXML
-    private Label label;
+    private Label fieldLabel;
 
     @FXML
-    private TextField textField;
+    private TextField valueTextField;
 
-    private Attribute attribute;
+    @FXML
+    private Label valueLabel;
 
-    private String packagedExtraField = "donnafin.model.person.";
+    @FXML
+    private AnchorPane anchorPane;
+
+    private final EditHandler editor;
+    private State state = State.VIEW_MODE;
+    private String value;
+
+    enum State {
+        EDIT_MODE,
+        VIEW_MODE
+    }
+
+    @FunctionalInterface
+    interface EditHandler {
+        /**
+         * EditHandlers will take in the new value and apply it to the given field.
+         * If the edit was successful, it will return null else return the error
+         * message thrown when trying to edit the field in this manner.
+         *
+         * @param newValue the new value to be used in the field.
+         * @return error message thrown by {@code PersonAdapter}.
+         */
+        String applyEdit(String newValue);
+    }
+
 
     /**
      * Constructor for Attribute panel
-     * @param attribute
+     *
+     * @param fieldInString field heading.
+     * @param value initial value of the attribute.
+     * @param editor the callback used to commit changes to model.
      */
-    public AttributePanel(Attribute attribute) {
+    public AttributePanel(String fieldInString, String value, EditHandler editor) {
         super(FXML);
-        this.attribute = attribute;
-        String attributeName = attribute.getClass().getName().replace(packagedExtraField, "");
-        label.setText(attributeName);
-        textField.setText(attribute.toString());
+        this.editor = editor;
+        this.value = value;
+
+        fieldLabel.setText(fieldInString);
+        valueLabel.setText(this.value);
+        valueTextField.setText(this.value);
+        setEditable(false);
+        valueTextField.focusedProperty().addListener((
+            ignoreObservable, ignoreOldValue, newValue) -> setHighlight(newValue));
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+    private void setHighlight(boolean isOnFocus) {
+        if (isOnFocus) {
+            anchorPane.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7)");
+        } else {
+            anchorPane.setStyle("-fx-background-color: rgba(0, 0, 0, 0)");
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        AttributePanel attributePanel = (AttributePanel) o;
-        return Objects.equals(attributePanel, attributePanel)
-                && Objects.equals(label, attributePanel.label)
-                && Objects.equals(textField, attributePanel.textField);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(attribute, label, textField);
-    }
+    private void setEditable(boolean isToBeEditable) {
+        int textFieldOpacity = isToBeEditable ? 1 : 0;
+        int labelOpacity = isToBeEditable ? 0 : 1;
 
-    public void setLabel(String text) {
-        label.setText(text);
-    }
-
-    public String getLabel() {
-        return this.label.getText();
-    }
-
-    public void setValue(String text) {
-        textField.setText(text);
-    }
-
-    public String getValue() {
-        return this.textField.getText();
+        this.valueTextField.setOpacity(textFieldOpacity);
+        this.valueLabel.setOpacity(labelOpacity);
+        this.valueTextField.setEditable(isToBeEditable);
     }
 
     /**
      * Handles the Enter button pressed event.
+     * Updates client info after user edit.
      */
     @FXML
     private void handleCommandEntered() {
-        String newTextField = textField.getText();
-        System.out.println(attribute.toString());
+        this.value = valueTextField.getText();
+        this.valueTextField.setText(this.value);
+        this.valueLabel.setText(this.value);
+
+        switch (this.state) {
+        case EDIT_MODE:
+            String errMessage = editor.applyEdit(this.value);
+            if (errMessage != null) {
+                handleError(errMessage);
+            } else {
+                setEditable(false);
+                this.state = State.VIEW_MODE;
+            }
+            break;
+        case VIEW_MODE:
+            setEditable(true);
+            this.state = State.EDIT_MODE;
+            break;
+        default:
+            assert false : "Attribute Panel in an unexpected state";
+        }
     }
 
+    private void handleError(String errMessage) {
+        Alert editFailed = new Alert(Alert.AlertType.ERROR);
+        editFailed.setHeaderText("Could not save your edit.");
+        editFailed.setContentText(errMessage);
+        editFailed.show();
+    }
 }
-

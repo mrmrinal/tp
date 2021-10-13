@@ -19,8 +19,6 @@ public class PersonAdapter {
     private final Model model;
     private Person subject;
 
-
-
     public enum PersonField {
         NAME,
         PHONE,
@@ -57,12 +55,17 @@ public class PersonAdapter {
             Person curr = this.subject;
             Person newPerson = editPerson(curr, field, newValue);
             this.subject = newPerson;
+            model.setPerson(curr, newPerson);
             return newPerson;
         } catch (IllegalArgumentException e) {
             throw new InvalidFieldException(field);
         }
     }
 
+    /**
+     * Get all attributes from Person.
+     * @return Observable list of attributes
+     */
     public ObservableList<Attribute> getAllAttributesList() {
         return subject.getAllAttributesList();
     }

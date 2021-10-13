@@ -29,6 +29,9 @@ Class Tag
 package Storage{
 }
 
+package Logic{
+}
+
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Model
 
@@ -44,6 +47,7 @@ UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
 UniquePersonList --> "~* all" Person
+Person --> Logic
 Person *--> Name
 Person *--> Phone
 Person *--> Email

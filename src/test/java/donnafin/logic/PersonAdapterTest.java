@@ -41,6 +41,7 @@ public class PersonAdapterTest {
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
         Model model = new ModelManager(new AddressBook(), new UserPrefs(), storage);
+        model.addPerson(ALICE);
         personAdapter = new PersonAdapter(model, ALICE);
     }
 

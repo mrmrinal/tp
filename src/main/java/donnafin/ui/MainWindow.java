@@ -51,8 +51,6 @@ public class MainWindow extends UiPart<Stage> {
     @FXML
     private StackPane resultDisplayPlaceholder;
 
-    @FXML
-    private StackPane statusbarPlaceholder;
 
     /**
      * A wrapper around contents of DonnaFin view. Mainly for the global escape key function
@@ -133,9 +131,6 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
-        StatusBarFooter statusBarFooter = new StatusBarFooter(uiManager.getAddressBookFilePath());
-        statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
-
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
     }
@@ -149,6 +144,7 @@ public class MainWindow extends UiPart<Stage> {
         viewWrapper.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
                 switchToHome();
+                resultDisplayPlaceholder.getChildren().clear();
             }
         });
     }
