@@ -33,6 +33,7 @@ public class PersonAdapterTest {
     @TempDir
     public Path temporaryFolder;
     private PersonAdapter personAdapter;
+    private Model model;
 
     @BeforeEach
     public void setUp() {
@@ -40,7 +41,7 @@ public class PersonAdapterTest {
                 new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
-        Model model = new ModelManager(new AddressBook(), new UserPrefs(), storage);
+        model = new ModelManager(new AddressBook(), new UserPrefs(), storage);
         model.addPerson(ALICE);
         personAdapter = new PersonAdapter(model, ALICE);
     }
@@ -53,6 +54,17 @@ public class PersonAdapterTest {
     @Test
     public void getAllAttributesList_returnsCorrectOutput() {
         assertEquals(ALICE.getAllAttributesList(), personAdapter.getAllAttributesList());
+    }
+
+    @Test
+    public void testModelAndStorage() throws InvalidFieldException {
+        personAdapter.edit(PersonAdapter.PersonField.NAME, "Peter");
+        
+        assertEquals(new Person(new Name("Peter"), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags()), model.getFilteredPersonList().get(0));
+
+        personAdapter.edit(PersonAdapter.PersonField.NAME, ALICE.getName().toString());
+        assertEquals(ALICE, model.getFilteredPersonList().get(0));
     }
 
     @Test
